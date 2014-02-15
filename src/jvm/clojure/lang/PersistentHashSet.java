@@ -125,4 +125,11 @@ static final class TransientHashSet extends ATransientSet {
 	}
 }
 
+
+public static PersistentHashSet splice(PersistentHashSet lSet, PersistentHashSet rSet) {
+	PersistentHashMap meta = PersistentHashMap.EMPTY; // TODO - consider merging METAs
+	IPersistentMap impl = PersistentHashMap.splice((PersistentHashMap)lSet.impl, (PersistentHashMap)rSet.impl);
+	return new PersistentHashSet(meta, impl);
+}
+
 }
