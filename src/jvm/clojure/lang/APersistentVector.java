@@ -594,4 +594,82 @@ static class SubVector extends APersistentVector implements IObj{
 		return _meta;
 	}
 }
+// TODO: transient - and remove public
+public static class SuperVector extends APersistentVector implements IObj{
+	final IPersistentVector left;
+	final IPersistentVector right;
+	final int middle;
+	final int count;
+	final IPersistentMap _meta;
+
+	public SuperVector(IPersistentMap meta, IPersistentVector left, IPersistentVector right){
+		// if this were MultiVec we could collapse sub SubVectors and SuperVectors
+		this._meta = meta;
+		this.left = left;
+		this.right = right;
+		this.middle = left.count();
+		this.count = middle + right.count();
+	}
+
+	IPersistentVector side(int i) {
+		return (i < middle) ? left: right;
+	}
+
+	void boundsCheck(int i) {
+		if(i >= count || (i < 0)) throw new IndexOutOfBoundsException();
+	}
+
+	public Iterator iterator(){
+		// TODO: investigate
+		return super.iterator();
+	}
+
+	public Object nth(int i){
+		boundsCheck(i); // TODO: could we just delegate the bounds check for speed ?
+		return (i < middle) ? left.nth(i) : right.nth(i - middle);
+	}
+
+	public IPersistentVector assocN(int i, Object val){
+		boundsCheck(i);
+		if(i == count)
+			return cons(val);
+		else {
+			boolean isLeft = i < middle;
+			IPersistentVector l = isLeft ? left.assocN(i, val) : left;
+			IPersistentVector r = isLeft ? right : right.assocN(i - middle, val);
+			return new SuperVector(_meta, left, right);
+		}
+	}
+
+	public int count(){
+		return count;
+	}
+
+	public IPersistentVector cons(Object o){
+		return new SuperVector(_meta, left, right.cons(o));
+	}
+
+	public IPersistentCollection empty(){
+		return PersistentVector.EMPTY.withMeta(meta());
+	}
+
+	public IPersistentStack pop(){
+		if(count == 1)
+			return PersistentVector.EMPTY;
+		else
+			//return new SuperVector(_meta, left.pop(), right);
+			return new SuperVector(_meta, left, right); // TODO: tricky
+	}
+
+	public SuperVector withMeta(IPersistentMap meta){
+		if(meta == _meta)
+			return this;
+		else
+			return new SuperVector(meta, left, right);
+	}
+
+	public IPersistentMap meta(){
+		return _meta;
+	}
+}
 }
