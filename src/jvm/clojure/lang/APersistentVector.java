@@ -611,6 +611,44 @@ public static class SuperVector extends APersistentVector implements IObj{
 		this.count = middle + right.count();
 	}
 
+    class SuperVectorIterator implements Iterator {
+	private Iterator iterator;
+	private boolean isLeft;
+	
+	Iterator iterator(IPersistentVector v) {
+		if (v instanceof APersistentVector) {
+			return ((APersistentVector)v).iterator();
+		}
+		return SuperVector.super.iterator();
+	}
+	
+	SuperVectorIterator() {
+	    this.iterator = iterator(left);
+	    this.isLeft = true;
+	}
+	
+	public Iterator rollOver() {
+	    isLeft = false;
+	    return (iterator = iterator(right));
+	}
+
+	public boolean hasNext(){
+	    return iterator.hasNext() ? true : (isLeft ? rollOver().hasNext() : false);
+	}
+	
+	public Object next(){
+	    return iterator.next();
+	}
+	
+	public void remove(){
+	    throw new UnsupportedOperationException();
+	}
+    }
+
+	public Iterator iterator(){
+	    return new SuperVectorIterator();
+	}
+
 	public Object nth(int i){
 		return (i < middle) ? left.nth(i) : right.nth(i - middle);
 	}
