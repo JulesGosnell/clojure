@@ -614,6 +614,7 @@ public static class SuperVector extends APersistentVector implements IObj{
     class SuperVectorIterator implements Iterator {
 	private Iterator iterator;
 	private boolean isLeft;
+	private int n;
 	
 	Iterator iterator(IPersistentVector v) {
 		if (v instanceof APersistentVector) {
@@ -625,6 +626,7 @@ public static class SuperVector extends APersistentVector implements IObj{
 	SuperVectorIterator() {
 	    this.iterator = iterator(left);
 	    this.isLeft = true;
+	    this.n = 0;
 	}
 	
 	public Iterator rollOver() {
@@ -633,18 +635,19 @@ public static class SuperVector extends APersistentVector implements IObj{
 	}
 
 	public boolean hasNext(){
-	    return iterator.hasNext() ? true : (isLeft ? rollOver().hasNext() : false);
+	    return ++n < count;
 	}
 	
 	public Object next(){
-	    return iterator.next();
+	    int n2 = n++;
+	    return (n2 < middle ? iterator.next() : (n2 == middle ? rollOver().next() : iterator.next()));
 	}
 	
 	public void remove(){
 	    throw new UnsupportedOperationException();
 	}
     }
-
+    
 	public Iterator iterator(){
 	    return new SuperVectorIterator();
 	}
